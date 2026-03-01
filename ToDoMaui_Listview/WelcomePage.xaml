@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ToDoMaui_Listview.WelcomePage"
+             NavigationPage.HasNavigationBar="False"
+             BackgroundColor="#5C6B47">
+    <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="15">
+
+        <Label Text="ito-do mo to!" FontSize="48" FontAttributes="Bold" TextColor="#D5E6A3" HorizontalOptions="Center" />
+        <Label Text="Welcome to the&#x0a;place for productivity" FontSize="16" TextColor="White" HorizontalOptions="Center" HorizontalTextAlignment="Center" Margin="0,0,0,40" />
+
+        <Button Text="Let's get productive" FontAttributes="Bold" TextColor="#5C6B47" BackgroundColor="#D5E6A3" 
+                CornerRadius="25" Padding="30, 15" Clicked="OnStartClicked" />
+
+    </VerticalStackLayout>
+</ContentPage>
