@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ToDoMaui_Listview.SignUpPage"
+             NavigationPage.HasNavigationBar="False"
+             BackgroundColor="#5C6B47">
+
+    <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="20" Padding="30">
+        <Label Text="Create Account" FontSize="32" FontAttributes="Bold" TextColor="#D5E6A3" HorizontalOptions="Center" Margin="0,0,0,20"/>
+
+        <Border BackgroundColor="White" StrokeShape="RoundRectangle 25" StrokeThickness="0" Padding="15,5">
+            <Entry x:Name="userEntry" Placeholder="Username" TextColor="Black" PlaceholderColor="#A0A0A0"/>
+        </Border>
+
+        <Border BackgroundColor="White" StrokeShape="RoundRectangle 25" StrokeThickness="0" Padding="15,5">
+            <Entry x:Name="emailEntry" Placeholder="Email" Keyboard="Email" TextColor="Black" PlaceholderColor="#A0A0A0"/>
+        </Border>
+
+        <Border BackgroundColor="White" StrokeShape="RoundRectangle 25" StrokeThickness="0" Padding="15,5">
+            <Entry x:Name="passEntry" Placeholder="Password" IsPassword="True" TextColor="Black" PlaceholderColor="#A0A0A0"/>
+        </Border>
+
+        <Border BackgroundColor="White" StrokeShape="RoundRectangle 25" StrokeThickness="0" Padding="15,5">
+            <Entry x:Name="confirmPassEntry" Placeholder="Confirm Password" IsPassword="True" TextColor="Black" PlaceholderColor="#A0A0A0"/>
+        </Border>
+
+        <Button Text="SIGN UP" FontAttributes="Bold" TextColor="#5C6B47" BackgroundColor="#D5E6A3" 
+                CornerRadius="25" Padding="0, 15" Clicked="OnSignUpClicked" Margin="0,20,0,0"/>
+
+        <HorizontalStackLayout HorizontalOptions="Center" Spacing="5">
+            <Label Text="Already have an account?" TextColor="White" VerticalOptions="Center"/>
+            <Label Text="Login" TextColor="#D5E6A3" FontAttributes="Bold" TextDecorations="Underline" VerticalOptions="Center">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="GoBackToLogin" />
+                </Label.GestureRecognizers>
+            </Label>
+        </HorizontalStackLayout>
+    </VerticalStackLayout>
+</ContentPage>

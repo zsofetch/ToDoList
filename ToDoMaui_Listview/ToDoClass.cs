@@ -1,42 +1,61 @@
-﻿using System.ComponentModel;
+﻿using SQLite;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
 namespace ToDoMaui_Listview;
 
 public class ToDoClass : INotifyPropertyChanged
 {
-    int _id;
-    string _title;
-    string _detail;
-    bool _isCompleted; // added this for the checkbox
+    public ToDoClass() { }
 
-    public int id
+    int _item_id;
+    string _item_name;
+    string _item_description;
+    string _status;
+    int _user_id;
+
+    [PrimaryKey, AutoIncrement]
+    public int item_id
     {
-        get => _id;
-        set { _id = value; OnPropertyChanged(); }
+        get { return _item_id; }
+        set { _item_id = value; OnPropertyChanged(nameof(item_id)); }
+    }
+    public string item_name
+    {
+        get { return _item_name; }
+        set { _item_name = value; OnPropertyChanged(nameof(item_name)); }
+    }
+    public string item_description
+    {
+        get { return _item_description; }
+        set { _item_description = value; OnPropertyChanged(nameof(item_description)); }
+    }
+    public string status
+    {
+        get { return _status; }
+        set
+        {
+            _status = value;
+            OnPropertyChanged(nameof(status));
+            OnPropertyChanged(nameof(IsCompleted)); // Notify CheckBox to update
+        }
+    }
+    public int user_id
+    {
+        get { return _user_id; }
+        set { _user_id = value; OnPropertyChanged(nameof(user_id)); }
     }
 
-    public string title
-    {
-        get => _title;
-        set { _title = value; OnPropertyChanged(); }
-    }
-
-    public string detail
-    {
-        get => _detail;
-        set { _detail = value; OnPropertyChanged(); }
-    }
-
+    // This property bridges the gap between your string status and the CheckBox
+    [Ignore]
     public bool IsCompleted
     {
-        get => _isCompleted;
-        set { _isCompleted = value; OnPropertyChanged(); }
+        get { return status == "Completed"; }
+        set { status = value ? "Completed" : "Pending"; }
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
-
-    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = "")
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }

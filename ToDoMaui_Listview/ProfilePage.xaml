@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ToDoMaui_Listview.ProfilePage"
+             BackgroundColor="#F5F0E6">
+
+    <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="20">
+        <Label Text="Profile" FontSize="48" HorizontalOptions="Center" />
+        <Label x:Name="usernameLabel" FontSize="24" FontAttributes="Bold" TextColor="#333333" HorizontalOptions="Center" />
+
+        <Button Text="Sign Out" BackgroundColor="#E5B8B7" TextColor="White" CornerRadius="20" Padding="30,10" Clicked="OnSignOutClicked" Margin="0,30,0,0"/>
+    </VerticalStackLayout>
+</ContentPage>

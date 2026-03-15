@@ -1,41 +1,43 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="ToDoMaui_Listview.MainPage"
+             x:Class="ToDoMaui_Listview.CompletedPage"
              BackgroundColor="#F5F0E6">
 
     <Grid RowDefinitions="Auto, Auto, *" Padding="20" RowSpacing="15">
 
-        <Border Grid.Row="0" BackgroundColor="#EBE3D5" StrokeShape="RoundRectangle 20" StrokeThickness="0" Padding="15">
+        <Border Grid.Row="0" x:Name="editPanel" IsVisible="False" BackgroundColor="#EBE3D5" StrokeShape="RoundRectangle 20" StrokeThickness="0" Padding="15">
             <VerticalStackLayout Spacing="10">
                 <Entry x:Name="nameEntry" Placeholder="Task Tag (e.g., DAILY)" TextColor="Black" BackgroundColor="White" />
                 <Entry x:Name="descEntry" Placeholder="Task Details" TextColor="Black" BackgroundColor="White" />
 
                 <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                    <Button x:Name="addBtn" Grid.ColumnSpan="2" Text="Add Task" TextColor="#5C6B47" BackgroundColor="#D5E6A3" CornerRadius="20" Clicked="AddToDoItem"/>
-                    <Button x:Name="editBtn" Grid.Column="0" IsVisible="False" Text="Save" TextColor="White" BackgroundColor="#8AA399" CornerRadius="20" Clicked="SaveEditItem"/>
-                    <Button x:Name="cancelBtn" Grid.Column="1" IsVisible="False" Text="Cancel" TextColor="White" BackgroundColor="#E5B8B7" CornerRadius="20" Clicked="CancelEdit"/>
+                    <Button x:Name="editBtn" Grid.Column="0" Text="Save" TextColor="White" BackgroundColor="#8AA399" CornerRadius="20" Clicked="SaveEditItem"/>
+                    <Button x:Name="cancelBtn" Grid.Column="1" Text="Cancel" TextColor="White" BackgroundColor="#E5B8B7" CornerRadius="20" Clicked="CancelEdit"/>
                 </Grid>
             </VerticalStackLayout>
         </Border>
 
-        <Label Grid.Row="1" Text="To do today:" TextColor="#555" Margin="0,5,0,0" />
+        <Label Grid.Row="1" Text="Completed Tasks:" TextColor="#555" Margin="0,5,0,0" />
 
-        <ListView Grid.Row="2" x:Name="todoLV" HasUnevenRows="True" SeparatorVisibility="None" BackgroundColor="Transparent" SelectionMode="None">
+        <ListView Grid.Row="2" x:Name="completedLV" HasUnevenRows="True" SeparatorVisibility="None" BackgroundColor="Transparent" SelectionMode="None">
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <ViewCell>
-                        <Border BackgroundColor="#EBE3D5" StrokeShape="RoundRectangle 20" StrokeThickness="0" Padding="15,15" Margin="0,0,0,10">
+                        <Border BackgroundColor="#E3DFD5" StrokeShape="RoundRectangle 20" StrokeThickness="0" Padding="15,15" Margin="0,0,0,10">
                             <Grid ColumnDefinitions="*, Auto, Auto, Auto" ColumnSpacing="10">
-                                <VerticalStackLayout Grid.Column="0" VerticalOptions="Center" Spacing="5">
-                                    <Border BackgroundColor="#F4ACB7" StrokeShape="RoundRectangle 12" StrokeThickness="0" Padding="10,4" HorizontalOptions="Start">
+
+                                <VerticalStackLayout Grid.Column="0" VerticalOptions="Center" Spacing="5" Opacity="0.7">
+                                    <Border BackgroundColor="#A0A0A0" StrokeShape="RoundRectangle 12" StrokeThickness="0" Padding="10,4" HorizontalOptions="Start">
                                         <Label Text="{Binding item_name}" FontSize="10" FontAttributes="Bold" TextColor="White" TextTransform="Uppercase" />
                                     </Border>
-                                    <Label Text="{Binding item_description}" FontSize="14" TextColor="#333333" LineBreakMode="TailTruncation" />
+                                    <Label Text="{Binding item_description}" FontSize="14" TextColor="#555555" LineBreakMode="TailTruncation" TextDecorations="Strikethrough" />
                                 </VerticalStackLayout>
 
                                 <Button Grid.Column="1" Text="✏️" BackgroundColor="Transparent" CommandParameter="{Binding .}" Clicked="TriggerEditMode" FontSize="16" VerticalOptions="Center"/>
+
                                 <CheckBox Grid.Column="2" IsChecked="{Binding IsCompleted}" Color="#5C6B47" VerticalOptions="Center" CheckedChanged="OnTaskCheckedChanged" />
+
                                 <Button Grid.Column="3" Text="✕" BackgroundColor="Transparent" TextColor="#A0A0A0" CommandParameter="{Binding .}" Clicked="DeleteToDoItem" FontSize="16" VerticalOptions="Center"/>
                             </Grid>
                         </Border>
