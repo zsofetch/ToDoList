@@ -1,5 +1,5 @@
-using Javax.Annotation.Meta;
-using static Android.Provider.ContactsContract.CommonDataKinds;
+//using Javax.Annotation.Meta;
+//using static Android.Provider.ContactsContract.CommonDataKinds;
 
 namespace ToDoMaui_Listview;
 
