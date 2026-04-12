@@ -4,7 +4,7 @@ namespace ToDoMaui_Listview;
 
 public partial class CompletedPage : ContentPage
 {
-    private DatabaseHelper _dbHelper = new DatabaseHelper();
+    private ApiService _apiService = new ApiService();
     public ObservableCollection<ToDoClass> CompletedToDos { get; set; } = new ObservableCollection<ToDoClass>();
     private ToDoClass? _selectedToDo;
     private int _currentUserId;
@@ -16,16 +16,13 @@ public partial class CompletedPage : ContentPage
         completedLV.ItemsSource = CompletedToDos;
     }
 
-    // Refreshes the list every time the user clicks on the "Completed" tab
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        var tasksFromDb = await _dbHelper.GetTasksByStatus(_currentUserId, "Completed");
+        // Fetch inactive items from API
+        var tasksFromApi = await _apiService.GetTasksAsync(_currentUserId, "inactive");
         CompletedToDos.Clear();
-        foreach (var task in tasksFromDb)
-        {
-            CompletedToDos.Add(task);
-        }
+        foreach (var task in tasksFromApi) CompletedToDos.Add(task);
     }
 
     private void TriggerEditMode(object sender, EventArgs e)
@@ -35,8 +32,7 @@ public partial class CompletedPage : ContentPage
             _selectedToDo = item;
             nameEntry.Text = item.item_name;
             descEntry.Text = item.item_description;
-
-            editPanel.IsVisible = true; // Show the hidden input area
+            editPanel.IsVisible = true;
         }
     }
 
@@ -44,44 +40,47 @@ public partial class CompletedPage : ContentPage
     {
         if (_selectedToDo != null)
         {
-            _selectedToDo.item_name = nameEntry.Text;
-            _selectedToDo.item_description = descEntry.Text;
-
-            await _dbHelper.SaveToDo(_selectedToDo); // Save to Database
+            await _apiService.UpdateTaskAsync(_selectedToDo.item_id, nameEntry.Text, descEntry.Text);
+            OnAppearing();
             CancelEdit(null, null);
         }
     }
 
     private void CancelEdit(object? sender, EventArgs e)
     {
-        nameEntry.Text = string.Empty;
-        descEntry.Text = string.Empty;
-        _selectedToDo = null;
-        editPanel.IsVisible = false; // Hide the input area again
+        nameEntry.Text = string.Empty; descEntry.Text = string.Empty; _selectedToDo = null;
+        editPanel.IsVisible = false;
     }
 
     private async void DeleteToDoItem(object sender, EventArgs e)
     {
         if (sender is Button btn && btn.CommandParameter is ToDoClass itemToDelete)
         {
-            await _dbHelper.DeleteToDo(itemToDelete);
+            await _apiService.DeleteTaskAsync(itemToDelete.item_id);
             CompletedToDos.Remove(itemToDelete);
-
             if (_selectedToDo == itemToDelete) CancelEdit(null, null);
         }
     }
 
-    // This moves the task back to the Main page when unchecked!
     private async void OnTaskCheckedChanged(object sender, CheckedChangedEventArgs e)
     {
         if (sender is CheckBox cb && cb.BindingContext is ToDoClass task)
         {
-            // We only check if the box is UNCHECKED (e.Value is false)
             if (!e.Value)
             {
-                task.status = "Pending"; // Ensure database gets the right string
-                await _dbHelper.SaveToDo(task); // Save to database
-                CompletedToDos.Remove(task); // Remove it from this tab
+                // Wait for the API to respond
+                var response = await _apiService.ChangeStatusAsync(task.item_id, "active");
+
+                if (response != null && response.status == 200)
+                {
+                    CompletedToDos.Remove(task); // Success! Safe to remove visually
+                }
+                else
+                {
+                    // Fail! Show us exactly what the server complained about
+                    await DisplayAlert("Server Error", response?.message ?? "Unknown Error", "OK");
+                    task.status = "inactive"; // Re-check the box visually since it failed
+                }
             }
         }
     }

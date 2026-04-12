@@ -4,9 +4,8 @@ namespace ToDoMaui_Listview;
 
 public partial class MainPage : ContentPage
 {
-    private DatabaseHelper _dbHelper = new DatabaseHelper();
-    public ObservableCollection<ToDoClass> ToDos { get; set; } = new ObservableCollection<ToDoClass>(); //an ObservableCollection is a special type of list that automatically updates the screen.
-                                                                                                        //When you say ToDos.Add(newTask) or ToDos.Remove(task), the XAML sees it happen and instantly redraws the UI 
+    private ApiService _apiService = new ApiService();
+    public ObservableCollection<ToDoClass> ToDos { get; set; } = new ObservableCollection<ToDoClass>();
     private ToDoClass? _selectedToDo;
     private int _currentUserId;
 
@@ -17,35 +16,40 @@ public partial class MainPage : ContentPage
         todoLV.ItemsSource = ToDos;
     }
 
-    //for this method, evry single time the user clicks on a tab, this method fires.
-    //It clears out the old list on the screen, asks the database for a fresh list of tasks, and repopulates the screen.
+    // 1. Create a dedicated task loader that is safe to await
+    private async Task LoadTasks()
+    {
+        var tasksFromApi = await _apiService.GetTasksAsync(_currentUserId, "active");
+        ToDos.Clear();
+        foreach (var task in tasksFromApi) ToDos.Add(task);
+    }
+
+    // 2. Update OnAppearing to use the new safe loader
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        var tasksFromDb = await _dbHelper.GetTasksByStatus(_currentUserId, "Pending");
-        ToDos.Clear();
-        foreach (var task in tasksFromDb) ToDos.Add(task);
+        await LoadTasks();
     }
 
+    // 3. Update the Add button to listen for server errors
     private async void AddToDoItem(object? sender, EventArgs e)
     {
-        if (string.IsNullOrWhiteSpace(nameEntry.Text) || string.IsNullOrWhiteSpace(descEntry.Text))
+        if (string.IsNullOrWhiteSpace(nameEntry.Text) || string.IsNullOrWhiteSpace(descEntry.Text)) return;
+
+        // Post to LIVE API and wait for the response
+        var response = await _apiService.AddTaskAsync(nameEntry.Text, descEntry.Text, _currentUserId);
+
+        if (response != null && response.status == 200)
         {
-            await DisplayAlert("Wait!", "Please enter both a tag and a detail.", "OK");
-            return;
+            // Success! Clear the inputs and safely await the list refresh
+            ClearInputs();
+            await LoadTasks();
         }
-
-        var newTask = new ToDoClass
+        else
         {
-            item_name = nameEntry.Text,          // Updated to match your ToDoClass
-            item_description = descEntry.Text,   // Updated to match your ToDoClass
-            status = "Pending",
-            user_id = _currentUserId
-        };
-
-        await _dbHelper.SaveToDo(newTask);
-        ToDos.Add(newTask);
-        ClearInputs();
+            // Fail! Show us exactly what the server said is wrong
+            await DisplayAlert("Server Error", response?.message ?? "Unknown Error", "OK");
+        }
     }
 
     private void TriggerEditMode(object sender, EventArgs e)
@@ -53,12 +57,10 @@ public partial class MainPage : ContentPage
         if (sender is Button btn && btn.CommandParameter is ToDoClass item)
         {
             _selectedToDo = item;
-            nameEntry.Text = item.item_name; //updated 
-            descEntry.Text = item.item_description; //updated
+            nameEntry.Text = item.item_name;
+            descEntry.Text = item.item_description;
 
-            addBtn.IsVisible = false;
-            editBtn.IsVisible = true;
-            cancelBtn.IsVisible = true;
+            addBtn.IsVisible = false; editBtn.IsVisible = true; cancelBtn.IsVisible = true;
         }
     }
 
@@ -66,9 +68,9 @@ public partial class MainPage : ContentPage
     {
         if (_selectedToDo != null)
         {
-            _selectedToDo.item_name = nameEntry.Text;
-            _selectedToDo.item_description = descEntry.Text;
-            await _dbHelper.SaveToDo(_selectedToDo);
+            // Send PUT request to API
+            await _apiService.UpdateTaskAsync(_selectedToDo.item_id, nameEntry.Text, descEntry.Text);
+            OnAppearing(); // Refresh data
             CancelEdit(null, null);
         }
     }
@@ -76,41 +78,41 @@ public partial class MainPage : ContentPage
     private void CancelEdit(object? sender, EventArgs e)
     {
         ClearInputs();
-        addBtn.IsVisible = true;
-        editBtn.IsVisible = false;
-        cancelBtn.IsVisible = false;
+        addBtn.IsVisible = true; editBtn.IsVisible = false; cancelBtn.IsVisible = false;
     }
 
     private async void DeleteToDoItem(object? sender, EventArgs e)
     {
         if (sender is Button btn && btn.CommandParameter is ToDoClass itemToDelete)
         {
-            await _dbHelper.DeleteToDo(itemToDelete);
+            await _apiService.DeleteTaskAsync(itemToDelete.item_id);
             ToDos.Remove(itemToDelete);
-
             if (_selectedToDo == itemToDelete) CancelEdit(null, null);
         }
     }
 
-    // This is the method that fires when the user checks the box to mark a task as completed. It updates the status in the database, and then removes it from this list (since this list only shows pending tasks).
     private async void OnTaskCheckedChanged(object sender, CheckedChangedEventArgs e)
     {
         if (sender is CheckBox cb && cb.BindingContext is ToDoClass task)
         {
-            // We only check if the box is checked (e.Value is true)
             if (e.Value)
             {
-                task.status = "Completed"; // changes the task.status from "Pending" to "Completed"
-                await _dbHelper.SaveToDo(task); // Save to database
-                ToDos.Remove(task); // Remove it from this tab
+                // Wait for the API to respond
+                var response = await _apiService.ChangeStatusAsync(task.item_id, "inactive");
+
+                if (response != null && response.status == 200)
+                {
+                    ToDos.Remove(task); // Success! Safe to remove visually
+                }
+                else
+                {
+                    // Fail! Show us exactly what the server complained about
+                    await DisplayAlert("Server Error", response?.message ?? "Unknown Error", "OK");
+                    task.status = "active"; // Uncheck the box visually since it failed
+                }
             }
         }
     }
 
-    private void ClearInputs()
-    {
-        nameEntry.Text = string.Empty;
-        descEntry.Text = string.Empty;
-        _selectedToDo = null;
-    }
+    private void ClearInputs() { nameEntry.Text = string.Empty; descEntry.Text = string.Empty; _selectedToDo = null; }
 }
